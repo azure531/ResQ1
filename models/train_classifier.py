@@ -5,7 +5,6 @@ import re
 import nltk
 import seaborn as sns
 import time
-import utils
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.tokenize import sent_tokenize
@@ -24,7 +23,7 @@ import pickle
 import sys
 import os
 import sys
-sys.path.append('D:\CSE\DisasterResponseProject-main')
+sys.path.append('D:\ResQ\DisasterResponseWorking_PhaseI-master')
 
 # getting the name of the directory
 # where the this file is present.
@@ -37,7 +36,7 @@ parent = os.path.dirname(current)
 # adding the parent directory to 
 # the sys.path.
 sys.path.append(parent)
-import utils
+
 from utils import Text_clean
 
 nltk.download('stopwords')
@@ -90,7 +89,7 @@ def build_model():
         CV: the model with the optimized parameters
     '''
     pipeline = Pipeline([
-        ('tfidvectorizer', TfidfVectorizer(tokenizer=utils.Text_clean.tokenize)),#override the tokenizer with customized one
+        ('tfidvectorizer', TfidfVectorizer(tokenizer=Text_clean.tokenize)),#override the tokenizer with customized one
         ('clf', MultiOutputClassifier(SGDClassifier(n_jobs = -1,random_state=6)))]
         )
 
