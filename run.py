@@ -2,6 +2,7 @@ import json
 import plotly
 import pandas as pd
 import re
+import nltk
 
 from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
@@ -15,7 +16,8 @@ import joblib
 #from sklearn.base import BaseEstimator, TransformerMixin
 from sqlalchemy import create_engine
 #import dill as pickle
-import utils
+import utils as utils
+import autocorrect
 
 app = Flask(__name__)
 
@@ -26,6 +28,8 @@ df_redefine = df.iloc[ : , -36:]
 df_redefine = df_redefine.drop(['related','child_alone'],axis=1)
 df_redefine_columnnames = list([x.replace('_', ' ') for x in df_redefine])
 
+words=['flood','floods','aid' ,'request','direct' ,'search' ,'rescue','food' ,'shelter','refugees','buildings','weather related','storm','earthquake','fire' ,'security','medical help','water','clothing','missing','death','electricity','hospital','medical products','military','transport'
+'cold']
 '''
 def tokenize(text):
         tokens = word_tokenize(text)
@@ -43,6 +47,8 @@ def tokenize(text):
                 clean_tokens.append(lemmed)
         return clean_tokens
 '''
+ 
+    
 
 model = joblib.load('models/classifier.pkl')
 
@@ -114,10 +120,23 @@ def index():
 @app.route('/go')
 def go():
     # save user input in query
+    #words_lower = [word.lower() for word in words]
     query = request.args.get('query', '') 
+    query_words = query.lower().split()
 
+    if any(word in words for word in query_words):
+        query2 = query
+    else:
+        #query2 = autocorrect.autoCorrect_sentence(query)
+        corrected_words = [autocorrect.autoCorrect(word) for word in query_words]
+    # Filter out None values from corrected_words
+        corrected_words = [word for word in corrected_words if word is not None]
+        query2 = ' '.join(corrected_words)
+
+    #query2=autocorrect.autoCorrect(query)
+    print(query2)
     # use model to predict classification for query
-    classification_labels = model.predict([query])[0]
+    classification_labels = model.predict([query2])[0]
     classification_results = dict(zip(df_redefine_columnnames, classification_labels))
 
     # This will render the go.html Please see that file. 
@@ -126,6 +145,8 @@ def go():
         query=query,
         classification_result=classification_results
     )
+
+    
 
 
 def main():
